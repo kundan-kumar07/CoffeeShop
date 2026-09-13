@@ -201,16 +201,27 @@ export const handleStripeWebhook = async (req, res) => {
       const session = event.data.object;
 
       const orderId = session.metadata.orderId;
+      const userId = session.metadata.userId;
 
       console.log("Paid order:", orderId);
 
       await sql`
-                UPDATE orders
-                SET status = 'paid'
-                WHERE id = ${orderId};
-            `;
+        UPDATE orders
+        SET status = 'paid'
+        WHERE id = ${orderId};
+    `;
+
+      await sql`
+        DELETE FROM cart_items
+        WHERE cart_id = (
+            SELECT id
+            FROM carts
+            WHERE user_id = ${userId}
+        );
+    `;
 
       console.log(`Order ${orderId} marked as paid.`);
+      console.log(`Cart cleared for user ${userId}.`);
     }
 
     res.json({
