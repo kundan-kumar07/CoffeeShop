@@ -11,13 +11,14 @@ import { handleStripeWebhook } from "./controllers/paymentController.js";
 const app = express();
 
 app.use(cors());
-app.use(express.json());
-app.use(clerkMiddleware());
 app.post(
     "/api/payments/webhook",
     express.raw({ type: "application/json" }),
     handleStripeWebhook
 );
+app.use(express.json());
+app.use(clerkMiddleware());
+
 
 app.get("/", (req, res) => {
   res.json({
