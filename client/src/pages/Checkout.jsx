@@ -9,10 +9,6 @@ const Checkout = () => {
   const { user } = useUser();
   const { getToken } = useAuth();
   const navigate = useNavigate();
- 
-  
-  
-
 
   const { cartItems, cartTotal } = useCart();
 
@@ -44,56 +40,37 @@ const Checkout = () => {
     setError("");
 
     if (deliveryMethod === "delivery") {
-        const {
-            fullName,
-            phone,
-            address,
-            city,
-            state,
-            pinCode,
-        } = formData;
+      const { fullName, phone, address, city, state, pinCode } = formData;
 
-        if (
-            !fullName ||
-            !phone ||
-            !address ||
-            !city ||
-            !state ||
-            !pinCode
-        ) {
-            setError("Please fill in all delivery details.");
-            return;
-        }
+      if (!fullName || !phone || !address || !city || !state || !pinCode) {
+        setError("Please fill in all delivery details.");
+        return;
+      }
     }
 
     try {
-        const token = await getToken();
+      const token = await getToken();
 
-        const response = await api.post(
-            "/payments/create-checkout-session",
-            {
-                deliveryMethod,
-                ...(deliveryMethod === "delivery"
-                    ? formData
-                    : {}),
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        );
+      const response = await api.post(
+        "/payments/create-checkout-session",
+        {
+          deliveryMethod,
+          ...(deliveryMethod === "delivery" ? formData : {}),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
 
-        window.location.href = response.data.url;
+      window.location.href = response.data.url;
     } catch (error) {
-        console.error("Payment error:", error);
+      console.error("Payment error:", error);
 
-        setError(
-            error.response?.data?.message ||
-                "Failed to start payment."
-        );
+      setError(error.response?.data?.message || "Failed to start payment.");
     }
-};
+  };
 
   if (cartItems.length === 0) {
     return (
@@ -366,7 +343,7 @@ const Checkout = () => {
 
               <button
                 type="submit"
-                className="mt-6 w-full rounded-full bg-stone-900 py-3 font-medium text-white transition hover:bg-stone-700"
+                className="mt-5 w-full cursor-pointer rounded-full bg-stone-900 py-3 text-sm font-medium text-white transition hover:bg-stone-700 sm:mt-6 sm:text-base"
               >
                 Place Order
               </button>
