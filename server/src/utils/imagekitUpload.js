@@ -1,9 +1,6 @@
-import fs from "fs/promises";
 import imagekit from "../config/imagekit.js";
 
-const uploadToImageKit = async (filePath, fileName) => {
-    const fileBuffer = await fs.readFile(filePath);
-
+const uploadToImageKit = async (fileBuffer, fileName) => {
     const response = await imagekit.files.upload({
         file: fileBuffer.toString("base64"),
         fileName,
