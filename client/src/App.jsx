@@ -8,20 +8,19 @@ import Checkout from "./pages/Checkout.jsx";
 import MainLayout from "./layouts/MainLayout.jsx";
 import Orders from "./pages/Orders.jsx";
 import OrderDetails from "./pages/OrderDetails.jsx";
+import AdminProducts from "./pages/AdminProducts.jsx";
 
 function App() {
   return (
     <MainLayout>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/admin/products" element={<AdminProducts />} />
         <Route path="/orders" element={<Orders />} />
         <Route path="/menu" element={<Menu />} />
-        <Route
-    path="/orders/:orderId"
-    element={<OrderDetails />}
-/>
+        <Route path="/orders/:orderId" element={<OrderDetails />} />
         <Route path="/checkout" element={<Checkout />} />
-        <Route path="/order-success/:orderId" element={<OrderSuccess />} />
+        <Route path="/payment-success" element={<OrderSuccess />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
