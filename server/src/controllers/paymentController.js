@@ -185,6 +185,38 @@ export const createCheckoutSession = async (req, res) => {
     });
   }
 };
+
+export const getOrderIdFromSession = async (req, res) => {
+    try {
+        const { sessionId } = req.params;
+
+        if (!sessionId) {
+            return res.status(400).json({
+                message: "Stripe session ID is required.",
+            });
+        }
+
+        const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+        const orderId = session.metadata?.orderId;
+
+        if (!orderId) {
+            return res.status(404).json({
+                message: "Order ID not found in Stripe session.",
+            });
+        }
+
+        res.json({
+            orderId,
+        });
+    } catch (error) {
+        console.error("Error retrieving Stripe session:", error);
+
+        res.status(500).json({
+            message: "Failed to retrieve order information.",
+        });
+    }
+};
 export const handleStripeWebhook = async (req, res) => {
   try {
     const signature = req.headers["stripe-signature"];

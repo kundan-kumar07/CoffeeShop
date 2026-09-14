@@ -1,7 +1,91 @@
-import { Link, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { useAuth } from "@clerk/react";
+
+import api from "../services/api.js";
 
 const OrderSuccess = () => {
-    const { orderId } = useParams();
+    const [searchParams] = useSearchParams();
+    const { getToken } = useAuth();
+
+    const sessionId = searchParams.get("session_id");
+
+    const [orderId, setOrderId] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        const fetchOrderId = async () => {
+            try {
+                if (!sessionId) {
+                    setError("Stripe session ID is missing.");
+                    return;
+                }
+
+                const token = await getToken();
+
+                if (!token) {
+                    setError("Authentication required.");
+                    return;
+                }
+
+                const response = await api.get(
+                    `/payments/session/${sessionId}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
+                );
+
+                setOrderId(response.data.orderId);
+            } catch (error) {
+                console.error("Error fetching order ID:", error);
+
+                setError(
+                    error.response?.data?.message ||
+                    "Failed to fetch order information."
+                );
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchOrderId();
+    }, [sessionId, getToken]);
+
+    if (loading) {
+        return (
+            <div className="flex min-h-[70vh] items-center justify-center bg-amber-50 px-4">
+                <p className="text-stone-600">
+                    Loading your order...
+                </p>
+            </div>
+        );
+    }
+
+    if (error || !orderId) {
+        return (
+            <div className="flex min-h-[70vh] items-center justify-center bg-amber-50 px-4">
+                <div className="w-full max-w-lg rounded-3xl bg-white p-8 text-center shadow-sm">
+                    <h1 className="text-2xl font-bold text-stone-900">
+                        Something went wrong
+                    </h1>
+
+                    <p className="mt-3 text-stone-500">
+                        {error || "Order information could not be found."}
+                    </p>
+
+                    <Link
+                        to="/orders"
+                        className="mt-6 inline-block rounded-full bg-stone-900 px-6 py-3 font-medium text-white transition hover:bg-stone-700"
+                    >
+                        View My Orders
+                    </Link>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex min-h-[70vh] items-center justify-center bg-amber-50 px-4 py-8 sm:px-6 sm:py-10">
