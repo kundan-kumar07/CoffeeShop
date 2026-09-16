@@ -2,11 +2,13 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { clerkMiddleware } from "@clerk/express";
+import adminDashboardRoutes from "./routes/adminDashboardRoutes.js";
 
 import productRoutes from "./routes/productRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
+import adminOrderRoutes from './routes/adminOrderRoutes.js'
 
 
 import { handleStripeWebhook } from "./controllers/paymentController.js";
@@ -35,6 +37,8 @@ app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/admin/orders", adminOrderRoutes);
+app.use("/api/admin/dashboard", adminDashboardRoutes);
 
 
 const PORT = process.env.PORT || 5000;

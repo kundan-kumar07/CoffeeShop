@@ -4,7 +4,7 @@ const requireAdmin = async (req, res, next) => {
     try {
         const user = await clerkClient.users.getUser(req.userId);
 
-        if (user.privateMetadata?.role !== "admin") {
+        if (user.publicMetadata?.role !== "admin") {
             return res.status(403).json({
                 message: "Admin access required.",
             });
