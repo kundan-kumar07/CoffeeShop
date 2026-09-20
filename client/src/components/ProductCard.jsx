@@ -1,6 +1,15 @@
 import { useCart } from "../context/CartContext.jsx";
+import toast from "react-hot-toast";
+
 const ProductCard = ({ product }) => {
   const { addToCart } = useCart();
+
+  const handleAddToCart = () => {
+    addToCart(product);
+
+    toast.success(`${product.name} added to cart!`);
+  };
+
   return (
     <div className="overflow-hidden rounded-2xl bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
       <img
@@ -15,7 +24,9 @@ const ProductCard = ({ product }) => {
             {product.name}
           </h3>
 
-          <span className="font-semibold text-amber-700">₹{product.price}</span>
+          <span className="font-semibold text-amber-700">
+            ₹{product.price}
+          </span>
         </div>
 
         <p className="mt-2 text-sm leading-6 text-stone-500">
@@ -28,8 +39,8 @@ const ProductCard = ({ product }) => {
           </span>
 
           <button
-            onClick={() => addToCart(product)}
-            className="rounded-full bg-stone-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-stone-700"
+            onClick={handleAddToCart}
+            className="cursor-pointer rounded-full bg-stone-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-stone-700"
           >
             Add to Cart
           </button>

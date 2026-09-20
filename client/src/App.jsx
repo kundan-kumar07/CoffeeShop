@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useUser } from "@clerk/react";
+import { Toaster } from "react-hot-toast";
 
 import Cart from "./pages/Cart.jsx";
 import Home from "./pages/Home.jsx";
@@ -25,6 +26,7 @@ function App() {
 
   return (
     <MainLayout>
+      <Toaster position="top-center" />
       <Routes>
         <Route path="/" element={<Home />} />
 
