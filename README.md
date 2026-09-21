@@ -1,6 +1,6 @@
 # ☕ CoffeeShop – Full Stack Coffee Ordering Platform
 
-🌐 **Live Demo:** https://coffee-shop-lac-phi.vercel.app/
+🌐 **Live Demo:** https://coffee-shop-due2.vercel.app/
 
 ![React](https://img.shields.io/badge/Frontend-React-blue)
 ![Vite](https://img.shields.io/badge/Build-Vite-purple)
