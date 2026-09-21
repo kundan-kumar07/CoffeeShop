@@ -1,5 +1,6 @@
 import sql from "../db.js";
 import stripe from "../stripe.js";
+import sendOrderStatusEmail from "../utils/sendOrderStatusEmail.js";
 
 export const createCheckoutSession = async (req, res) => {
   try {
@@ -187,35 +188,35 @@ export const createCheckoutSession = async (req, res) => {
 };
 
 export const getOrderIdFromSession = async (req, res) => {
-    try {
-        const { sessionId } = req.params;
+  try {
+    const { sessionId } = req.params;
 
-        if (!sessionId) {
-            return res.status(400).json({
-                message: "Stripe session ID is required.",
-            });
-        }
-
-        const session = await stripe.checkout.sessions.retrieve(sessionId);
-
-        const orderId = session.metadata?.orderId;
-
-        if (!orderId) {
-            return res.status(404).json({
-                message: "Order ID not found in Stripe session.",
-            });
-        }
-
-        res.json({
-            orderId,
-        });
-    } catch (error) {
-        console.error("Error retrieving Stripe session:", error);
-
-        res.status(500).json({
-            message: "Failed to retrieve order information.",
-        });
+    if (!sessionId) {
+      return res.status(400).json({
+        message: "Stripe session ID is required.",
+      });
     }
+
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    const orderId = session.metadata?.orderId;
+
+    if (!orderId) {
+      return res.status(404).json({
+        message: "Order ID not found in Stripe session.",
+      });
+    }
+
+    res.json({
+      orderId,
+    });
+  } catch (error) {
+    console.error("Error retrieving Stripe session:", error);
+
+    res.status(500).json({
+      message: "Failed to retrieve order information.",
+    });
+  }
 };
 export const handleStripeWebhook = async (req, res) => {
   try {
@@ -232,8 +233,16 @@ export const handleStripeWebhook = async (req, res) => {
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
 
-      const orderId = session.metadata.orderId;
-      const userId = session.metadata.userId;
+      const orderId = session.metadata?.orderId;
+      const userId = session.metadata?.userId;
+
+      if (!orderId || !userId) {
+        console.error("Missing orderId or userId in Stripe metadata.");
+
+        return res.status(400).json({
+          message: "Missing order metadata.",
+        });
+      }
 
       console.log("Paid order:", orderId);
 
@@ -241,16 +250,39 @@ export const handleStripeWebhook = async (req, res) => {
         UPDATE orders
         SET status = 'paid'
         WHERE id = ${orderId};
-    `;
+      `;
+
+      const customerResult = await sql`
+        SELECT
+          users.email,
+          users.name
+        FROM orders
+        JOIN users
+          ON orders.user_id = users.id
+        WHERE orders.id = ${orderId}
+        LIMIT 1;
+      `;
+
+      if (customerResult.length > 0) {
+        console.log("Customer email:", customerResult[0].email);
+        console.log("Customer name:", customerResult[0].name);
+        console.log("Sending payment confirmation email...");
+        await sendOrderStatusEmail({
+          email: customerResult[0].email,
+          customerName: customerResult[0].name,
+          orderId,
+          status: "paid",
+        });
+      }
 
       await sql`
         DELETE FROM cart_items
         WHERE cart_id = (
-            SELECT id
-            FROM carts
-            WHERE user_id = ${userId}
+          SELECT id
+          FROM carts
+          WHERE user_id = ${userId}
         );
-    `;
+      `;
 
       console.log(`Order ${orderId} marked as paid.`);
       console.log(`Cart cleared for user ${userId}.`);

@@ -1,5 +1,5 @@
 import sql from "../db.js";
-
+import sendOrderStatusEmail from "../utils/sendOrderStatusEmail.js";
 export const getAllOrders = async (req, res) => {
     try {
         const orders = await sql`
@@ -57,11 +57,15 @@ export const updateOrderStatus = async (req, res) => {
 
         const orderResult = await sql`
             SELECT
-                id,
-                delivery_method,
-                status
+                orders.id,
+                orders.delivery_method,
+                orders.status,
+                users.email,
+                users.name
             FROM orders
-            WHERE id = ${orderId}
+            JOIN users
+                ON orders.user_id = users.id
+            WHERE orders.id = ${orderId}
             LIMIT 1;
         `;
 
@@ -102,6 +106,14 @@ export const updateOrderStatus = async (req, res) => {
             WHERE id = ${orderId}
             RETURNING id, status;
         `;
+
+        // Send email after successful status update
+        await sendOrderStatusEmail({
+            email: order.email,
+            customerName: order.name,
+            orderId: order.id,
+            status,
+        });
 
         res.json({
             message: "Order status updated successfully.",
